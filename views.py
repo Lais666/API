@@ -1,10 +1,11 @@
-from flask import jsonify, make_response, request, session
+from flask import jsonify, request, session
 from main import app, db
 from models import Livro, Usuario
 
 
 @app.route('/livro', methods=['GET'])
 def get_livro():
+    #return jsonify({'sidnei nao vai ter ferias!': 'vai dar curso'})
     livros = Livro.query.all()
     livros_dic = []
     for livro in livros:
@@ -17,12 +18,11 @@ def get_livro():
         livros_dic.append(livro_dic)
 
     #retorna dicionario em formato json
-    return make_response (
-        jsonify(
+    return jsonify(
             mensagem= 'Lista de Livros',
             livros= livros_dic
         )
-    )
+
 
 
 @app.route('/livro',  methods=['POST'])
@@ -42,8 +42,7 @@ def post_livro():
         db.session.add(novo_livro)
         db.session.commit()
 
-        return make_response(
-            jsonify(
+        return jsonify(
                 mensagem='Livro Cadastrado com Sucesso',
                 livro = {
                     'id_livro': novo_livro.id_livro,
@@ -52,13 +51,14 @@ def post_livro():
                     'ano_publicacao': novo_livro.ano_publicacao
                 }
             )
-        )
+
     else:
         # Se o usuário não estiver autenticado, retorna uma mensagem de erro
         return jsonify({'mensagem': 'Requer Autorização'})
 
 @app.route('/login', methods=['POST'])
 def login():
+    #pega dos dados enviados no formago json
     data = request.json
     email = data.get('email')
     senha = data.get('senha')
@@ -87,7 +87,8 @@ def put_livro(id_livro):
     # Verifica se o usuário está autenticado
     if 'id_usuario' in session:
         # Obtém o livro pelo ID fornecido
-        livro = Livro.query.get(id_livro)
+        #livro = Livro.query.get(id_livro)
+        livro = db.session.get(Livro, id_livro)
 
         if livro:
             # Atualiza os dados do livro com base nos dados enviados
@@ -99,8 +100,7 @@ def put_livro(id_livro):
             # Salva as mudanças no banco de dados
             db.session.commit()
 
-            return make_response(
-                jsonify(
+            return jsonify(
                     mensagem='Livro atualizado com sucesso',
                     livro={
                         'id_livro': livro.id_livro,
@@ -109,7 +109,7 @@ def put_livro(id_livro):
                         'ano_publicacao': livro.ano_publicacao
                     }
                 )
-            )
+
         else:
             return jsonify({'mensagem': 'Livro não encontrado'})
     else:
@@ -120,7 +120,8 @@ def delete_livro(id_livro):
     # Verifica se o usuário está autenticado
     if 'id_usuario' in session:
         # Obtém o livro pelo ID fornecido
-        livro = Livro.query.get(id_livro)
+        livro = db.session.get(Livro, id_livro)
+        #livro = Livro.query.get(id_livro)
 
         if livro:
             # Remove o livro do banco de dados
